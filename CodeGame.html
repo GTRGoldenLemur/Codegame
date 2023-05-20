@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title></title>
+	<style type="text/css">
+		#codeArea h1{
+			margin-top: 5px;
+			margin-bottom: 5px;
+		}
+		body{
+			margin: 0px;
+			background-color: lightblue;
+			overflow: hidden;
+		}
+		br{
+			margin-bottom: 7px;
+		}
+		#hero{
+			width: 15px;
+			height: 15px;
+			border-radius: 3px;
+			position: absolute;
+			background-color: white;
+			transition: background-color 0.4s ease-in-out, height 0.6s ease-in-out;
+		}
+		.platform{
+			background-color: grey;
+			position: absolute;
+		}
+		#gameZone{
+			position: static;
+		}
+		.win{
+			background-color: green;
+			position: absolute;
+			border-radius: 10px;
+			transition: all 1s ease-in-out;
+		}
+		#yourZone {
+			background-color: white;
+			border: dotted grey 2px;
+			position: absolute;
+			opacity: 0.6;
+			overflow: hidden;
+		}
+
+		.platform {
+			width: 100%;
+			height: 100%;
+		}
+		.spikes {
+			background-color: red;
+			position: absolute;
+		}
+		.platf {
+			margin: 0px;
+			position: static;
+		}
+
+
+		.buttons {
+			position: absolute;
+			bottom: 20px;
+			left: calc(50% - 120px);
+		}
+		#codeArea{
+			background-color: #6da4f9;
+			top: 10px;
+			right: 10px;
+			padding: 10px;
+			position: absolute;
+			display: grid;
+			grid-template-columns: 1fr;
+			width: 40%;
+			row-gap: 5px;
+			/*transition: all 0.4s;*/
+		}
+		.codeAreaHidden {
+			width: 100px !important;
+			opacity: 0.6;
+		}
+		.codeAreaHidden > details{
+			display: none;
+		}
+		.codeAreaHidden > h1 {
+			font-size: 14px;
+		}
+
+		details{
+			display: grid;
+			grid-template-columns: 1fr;
+			row-gap: 2px;
+			background-color: lightblue;
+			border-radius: 10px;
+			padding: 5px;
+			transition: all 0.4s ease-in-out;
+		}
+		details > textarea {
+			width: calc(100% - 10px);
+			height: 20vh;
+			resize: none;
+		}
+		#oops_div{
+			position: absolute;
+			height: 100%;
+			width: 100%;
+			background-color: #f0f0f066;
+			display: grid;
+			justify-items: center;
+			transition: all 0.4 ease-in-out;
+			grid-template-columns: 1fr;
+			font-size: 64px;
+			text-align: center;
+			color: white;
+			transition: all 0.4s ease-in-out;
+		}
+		#oops_div > div{
+			margin-top: 30vh;
+			background-color: red;
+			border-radius: 20px;
+			height: 150px;
+			width: 60%;
+			transition: all 0.4s ease-in-out;
+		}
+		.hide_oops_div {
+			opacity: 0;
+		}
+		.hide_oops_div > div{
+			transform: translateY(70px);
+		}
+		.show_oops_div > div{
+			transform: translateY(0px);
+		}
+
+	</style>
+</head>
+<body>
+	<div id="gameZone">
+		<div id="hero"></div>
+		<div class="platform" style="width: 500px; height: 50px;top:100px; left: 0px;"></div>
+		<div class="platform" style="width: 200px; height:50px;top:100px;left:800px;"></div>
+		<div class="platform" style="width: 200px; height:250px;top:200px;left:100px;"></div>
+		<div class="platform" style="width: 500px; height:50px;top:400px;left:900px;"></div>
+		<div class="platform" style="width: 400px; height:500px;top:500px;left: 0px;"></div>
+		<div class="platform" style="width: 500px; height:500px;top:500px;left:1000px;"></div>
+		<div class="spikes" style="width: 300px; height: 10px;top:140px; left: 500px;"></div>
+		<div class="spikes" style="width: 600px; height: 10px;top:440px; left: 300px;"></div>
+		<div id="yourZone" style="width: 700px; height: 450px;top: 98px;left: 298px;"></div>
+		<div class="win" style="width: 200px; height: 30px; top: 460px; left: 1050px;"></div>
+	</div>
+
+	<div class="buttons">
+		<button id="play_bt">PLAY!</button>
+		<select id="levels_selector"></select>
+		<button id="stop_bt">STOP!</button>
+	</div>
+
+
+	<div id="codeArea">
+		<h1 id="title"></h1>
+		<details id="mission_details">
+			<summary>Mission</summary>
+			<p id="mission">
+			</p>
+		</details>
+		<details id="codeInputs">
+			<summary>Code</summary>
+			<textarea id="css" placeholder="Write your css here:"></textarea>
+			<textarea id="html" placeholder="Write your HTML here:"></textarea>
+			<textarea id="js" placeholder="Write your js here:"></textarea>
+		</details>
+		<button id="menu_bt">Hide</button>
+	</div>
+
+	<div id="oops_div" class="hide_oops_div" style="display:none;">
+		<div>
+			...oops...
+		</div>
+	</div>
+
+
+</body>
+<script type="text/javascript">
+
+class Hero {
+	constructor() {
+		this.htmlComponent = document.getElementById("hero")
+		this.htmlComponent.style.top = "10px"; this.htmlComponent.style.left = "10px";
+		this.x = 0
+		this.y = 1
+		this.jump = true
+		this.win = false
+
+		this.key = []
+
+		// window.onkeydown = (e)=>{
+		// 	console.log(e.keyCode)
+		// 	if (e.keyCode == 38 && this.jump) {
+		// 		this.jump = false
+		// 		this.y += -15
+		// 	}
+		// 	if (e.keyCode == 39){
+		// 		this.x = +5
+		// 	}
+		// 	if (e.keyCode == 37){
+		// 		this.x = -5
+		// 	}
+		// }
+		window.onkeydown = (e)=>{
+			if (this.key.includes(e.keyCode)==false){
+				this.key.push(e.keyCode)
+			}
+		}
+		window.onkeyup = (e)=>{
+			this.key.splice(this.key.indexOf(e.keyCode), 1)
+		}
+	}
+	touches(answer) {
+		var platforms = Array.prototype.slice.call(document.querySelectorAll(".platform")).concat(Array.prototype.slice.call(document.querySelectorAll(".win"))).concat(Array.prototype.slice.call(document.querySelectorAll(".platf"))).concat(Array.prototype.slice.call(document.querySelectorAll(".spikes")))
+		var bEl = this.htmlComponent
+		var b = this.htmlComponent.getBoundingClientRect()
+		//var b = {x:b.left, y:b.top, height:bEl.offsetHeight, width:bEl.offseHeight}
+
+		for (var t=0; t<platforms.length; t++){
+			var aEl = platforms[t]
+			var a = aEl.getBoundingClientRect()
+			//var a = {x:a.left, y:a.top, height:aEl.offsetHeight, width:aEl.offseHeight}
+			//var touching = !(((a.y + a.height) < (b.y)) || (a.y > (b.y + b.height)) || ((a.x + a.width) < b.x) || (a.x > (b.x + b.width)));
+			var touching = (a.right > b.left && a.left < b.right && a.bottom > b.top && a.top < b.bottom)
+
+			if (Array.prototype.slice.call(aEl.classList).includes("win") && touching){
+				this.win = true
+			}
+
+			if (answer == "block" && touching){
+				this.lastElem = aEl
+				return aEl
+			}
+
+			if (touching) {
+				this.lastElem = aEl
+				return true
+			}
+		}
+		return false
+	}
+
+	move() {
+
+		if (this.key.includes(37)) {
+			this.x -= 2
+		}
+		if (this.key.includes(39)){
+			this.x += 2
+		}
+		if (this.key.includes(38) && this.jump) {
+				this.jump = false
+				this.y += -15
+		}
+
+		this.htmlComponent.style.top = String(parseFloat(this.htmlComponent.style.top.replace("px", ""))+this.y)+"px"
+		if (this.touches()) {
+			while (this.touches()) {
+				if (this.y>0) {
+					this.jump = true
+					this.htmlComponent.style.top = String(parseFloat(this.htmlComponent.style.top.replace("px", ""))-1)+"px"
+				}
+				else if(this.y<0) {
+					this.htmlComponent.style.top = String(parseFloat(this.htmlComponent.style.top.replace("px", ""))+1)+"px"
+				}
+			}
+			this.y = 0
+		}
+		this.y += 1
+
+		this.htmlComponent.style.left = String(parseFloat(this.htmlComponent.style.left.replace("px", ""))+this.x)+"px"
+		if (this.touches()) {
+			while (this.touches()) {
+				if (this.x>0) {
+					this.htmlComponent.style.left = String(parseFloat(this.htmlComponent.style.left.replace("px", ""))-1)+"px"
+				}
+				else if(this.x<0){
+					this.htmlComponent.style.left = String(parseFloat(this.htmlComponent.style.left.replace("px", ""))+1)+"px"
+				}
+			}
+			this.x = 0
+		}
+		this.x *= 0.8
+	}
+	reset(){
+		this.htmlComponent.style.top = "10px"; this.htmlComponent.style.left = "10px";
+		this.x = 0
+		this.y = 1
+		this.jump = true
+		this.lastElem = undefined
+		this.key = []
+	}
+}
+
+hero = undefined
+play = undefined
+leveldata = undefined
+
+var initial_style = ""
+
+function playLevel(){
+	play = requestAnimationFrame(playLevel)
+	hero.move()
+
+
+	if (parseInt(hero.htmlComponent.style.top.replace("px", ""))>leveldata.deathline){
+		console.log("YOU DIED", leveldata.deathline)
+		you_died()
+		cancelAnimationFrame(play)
+		setTimeout(()=>{hero.reset();playLevel()}, 1500)
+	}
+
+	if (hero.lastElem != undefined) {
+		if (Array.prototype.slice.call(hero.lastElem.classList).includes("spikes")){
+			console.log("BURNING")
+			cancelAnimationFrame(play)
+			hero.htmlComponent.style.backgroundColor = "red"
+			setTimeout(()=>{
+				hero.htmlComponent.style.height = "0px"
+				hero.htmlComponent.style.transition = "top 0.3s ease-in-out, height 0.3s ease-in-out"
+				hero.htmlComponent.style.top = String(parseFloat(hero.htmlComponent.style.top.replace("px", ""))+15)+"px"
+
+				setTimeout(()=>{
+					hero.htmlComponent.style.transition = ""
+					hero.htmlComponent.style.backgroundColor = ""
+					hero.htmlComponent.style.height = ""
+				}, 300)
+
+				setTimeout(()=>{
+					you_died()
+					hero.reset()
+					setTimeout(()=>{playLevel()}, 1500)
+				}, 600)
+			}, 400)
+	}
+
+		
+
+	}
+
+		
+	if (hero.win){
+		hero.win = false
+		console.log("YOU WON!")
+		initial_style = hero.lastElem.style
+		console.log(initial_style)
+
+		cancelAnimationFrame(play)	
+
+		hero.lastElem.style = "transition: all 0.7s; width: 100vw; height: 100vh; background-color: green; position: absolute; top: 0px; left: 0px;border-radius:0px;"
+
+
+		setTimeout(()=>{
+			console.log(initial_style)
+			hero.lastElem.style.opacity="0"
+			if (level != levels.length-1){
+				prepareLevel(level+1, false)
+				level += 1;
+				document.getElementById("levels_selector").value = level
+			}
+			else {
+				document.getElementById("levels_selector").value = level
+				prepareLevel(level, false)
+			}
+		}, 1000)
+	}
+	
+}
+
+
+var levels = [
+	{name: "Create the ground!", deathline: 500, css: [".platf{\nwidth:100%;\nheight:100%;\n}", true], html: ['', false], js: ["", true], mission: "Welcome, young Code Sorcerer! <br> Dear Altibut HyperText, our white square friend, wants to reach the Green Platform, but his way is difficult. <br> Quick! Help him by <b>creating a div whose class is 'platf'!</b> <br>Remember that tags in html starts with '<' and ends with '>', and that the div element needs a closing tag! <br> Here are some useful links you can use; <ul> <li> <a href='https://www.w3schools.com/Tags/tag_div.asp'>Info about the div tag</a></li><li> <a href='https://www.w3schools.com/html/html_classes.asp'> Info about classes </a> </li></ul>", map: '<div id="hero"></div><div class="platform" style="width: 220px; height: 50px;top:200px; left: -20px;"></div><div class="platform" style="width: 100px; height: 50px;top:150px;left:100px;"></div><div class="platform" style="width: 1800px; height: 1000px;top: 250px;left:00px;"></div><div id="yourZone" style="width: 500px; height: 100px;top: 148px;left: 200px;"></div><div class="win" style="width: 50px; height: 50px; top: 80px; left: 800px;"></div>', start_check: ()=>{return true}}, 
+	{name: "Clearing the path...", deathline: 500, css: ['', false], html:['<div class="platf"></div>', true], js: ["", true], mission: "Good job, back in the last level! Altibut asked me to thank you for that! <br> Now, he needs you to <b>delet the rock</b> that is blocking his way. I suggest you <b>make it smaller</b> by using <b>CSS</b> to change its <b>height</b>. <br> You can try to edit the 'platf' class rule to change its aperance! <br>Remember that when setting class rules, you need to add a dot, then the name of the class, and then some brackets. Inside the brackets, you include your properties, all separed by ';'. Look at the links bellow, or the at the CSS in the first level for examples. <br>Here are some useful links: <ul><li><a href='https://www.w3schools.com/html/html_css.asp'>Understand CSS</a></li><li><a href='https://www.w3schools.com/cssref/pr_dim_height.php'>Help with height property</a></li><li><a href='https://www.w3schools.com/cssref/css_units.php'>Check the HTML units</a></li></ul>", map: '<div id="hero"></div><div class="platform" style="width: 500px; height: 700px;top:200px; left: 0px;"></div><div class="platform" style="width: 1200px; height:600px;top:300px;left:500px;"></div><div class="platform" style="width: 700px; height:200px;top:0px;left:700px;"></div><div id="yourZone" style="width: 300px; height: 100px;top: 198px;left: 698px;"></div><div class="win" style="width: 50px; height: 50px; top: 250px; left: 1010px;"></div>', start_check: ()=>{return true}}, 
+	{name: "Some tunneling", deathline: 500, css: ['', false], html: ['<div class="platf"></div>', true], js: ["", true], mission:"Awesome! <br> Now we have another block of rock blocking the way, but changing its height won't be enougth this time. <br> I think you will have to <b>change the div's height and width </b>. <br> Like last time, you should edit the 'platf' class rules. Look at these links for help: <ul><li><a href='https://www.w3schools.com/html/html_css.asp'>Understand CSS (a bit more)</a></li><li><a href='https://www.w3schools.com/cssref/pr_dim_height.php'>Height property (again!)</a></li><li><a href='https://www.w3schools.com/cssref/pr_dim_width.php'>Info about width</a></li></ul>", map:'<div id="hero"></div><div class="platform" style="width: 500px; height: 70px;top:200px; left: 0px;"></div><div class="platform" style="width: 1700px; height:600px;top:350px;left:000px;"></div><div class="platform" style="width: 700px; height:350px;top:0px;left:800px;"></div><div id="yourZone" style="width: 300px; height: 150px;top: 198px;left: 498px;"></div><div class="win" style="width: 50px; height: 50px; top: 290px; left: 20px;"></div>', start_check: ()=>{return true}}, 
+	{name: "Bridge-building", deathline: 500, css: ['', true], html: ['', false], js: ['', true], mission: "Wow! Now you truly master the div! <br> However, there are other elements in HTML. In this exercise, you will have to use a <b>header tag</b> (&lth1\&gt*Text*&lt/h1&gt) as a bridge so Altibut can pass and hopefully not break his neck. So Altibut can step on your bridge, give your header the 'platf' tag. <br> Add some text between the header tags to make it longer. <br> Here you have <a href='https://www.w3schools.com/tags/tag_hn.asp'> more info about Headings</a>.", map: '<div id="hero"></div><div class="platform" style="width: 200px; height: 700px;top:200px; left: 0px;"></div><div class="platform" style="width: 600px; height:600px;top:200px;left:800px;"></div><div id="yourZone" style="width: 600px; height: 150px;top: 198px;left: 198px;"></div><div class="win" style="width: 50px; height: 50px; top: 145px; left: 900px;"></div>', start_check: ()=>{
+		children = document.getElementById("yourZone").children
+		for (var x=0;x<children.length;x++){
+			if (children[x].nodeName == "DIV"){
+				return false
+			}
+		}
+		return true	
+	}}, 
+	{name: "Staircase (I)", deathline: 500, css: ['', false], html: ['', false], js: ['', true], mission: "I can't count anymore all the times Altibut might have died without you! Now, he needs your help to climb to the Green Platform. <br> It is a difficult mission. You will have to do a <b> staircase with two divs </b>. Remember that Altibut needs them to have the 'platf' class to step on them! <br> So they both have different widths (as it is a staircase), you will need to give them <b> ids</b>. Ids are set on the element with: <b>id='...'</b>, and rules in CSS for a specific id are set up like this: <b>#...{}</b>.<br> Ids are key in html, so it is important you understand them well.<br> You also need to know that by defalt, element in HTML will usually pile up. <br>Here are some links to help you: <ul><li><a href='https://www.w3schools.com/htmL/html_id.asp'>What are IDs?</a></li><li><a href='https://www.w3schools.com/cssref/pr_dim_height.php'>Height property (just in case...)</a></li><li><a href='https://www.w3schools.com/cssref/pr_dim_width.php'>Width property (just in case too)</a></li></ul>", map: '<div id="hero"></div><div class="platform" style="width: 1600px; height: 700px;top:500px; left: 0px;"></div><div class="platform" style="width: 50px; height:450px;top:0px;left:200px;"></div><div class="platform" style="width: 1000px; height:50px;top:400px;left:200px;"></div><div id="yourZone" style="width: 600px; height: 200px;top: 198px;left: 248px;"></div><div class="win" style="width: 50px; height: 50px; top: 100px; left: 310px;"></div>', start_check:()=>{
+		children = document.getElementById("yourZone").children
+		num_div = 0
+		for (var x=0;x<children.length;x++){
+			if (children[x].nodeName == "DIV"){
+				num_div +=1
+			}
+		}
+		return num_div == 2}}, 
+	{name: "Climbing Puzzle", deathline: 500, css: ['', false], html: ['', false], js: ['', true], mission: "You're good at climbing, eh? You are lucky, then. Because this time climbing gets more difficult!<br>This time you'll have to <b>create some platforms</b> too reach the topmost one. Remember that you can <b>use the one that are already there</b>, and that you can create <b>divs that Altibut can go through</b> (just don't give them the 'platf' class). <br>With you're learnings about width, height, ids, classes and CSS, you will be able to pull up a solution (hopefully)! <details><summary>Here's a solution to the puzzle (not the code). Just look it if you want</summary><p style='line-height: 14px;letter-spacing: -5px;font-size: 32px;margin:0px'> □■□□□□□□□□□<br style='margin: 0px;'>□■□□□□□<span style='color:green'>■</span>□□□<br style='margin: 0px;'>□■□□□□■■■□□<br style='margin: 0px;'>□■□□□□□□□□□<br style='margin: 0px;'>□□<span style='color: grey;'>■■■■</span>□□□□□<br style='margin: 0px;'>□□□□□□□■■■■<br style='margin: 0px;'>□□□□□□□■■■■<br style='margin: 0px;'>□□<span style='color: grey;'>■■■■■</span>■■■■<br style='margin: 0px;'>■■■■■■■■■■■</p></details>", map: '<div id="hero"></div><div class="platform" style="width: 1600px; height: 500px;top:500px; left: 0px;"></div><div class="platform" style="width: 50px; height:300px;top:0px;left:150px;"></div><div class="platform" style="width: 800px; height:150px;top:350px;left:600px;"></div><div class="platform" style="width: 200px; height:50px;top:200px;left:550px;"></div>		<div id="yourZone" style="width: 400px; height: 300px;top: 198px;left: 198px;"></div><div class="win" style="width: 50px; height: 50px; top: 90px; left: 660px;"></div>', start_check:()=>{return true}},
+	{name: "Bridges'n Spikes", deathline: 600, css: ['', false], html: ['', false], js: ['', true], mission: "Good job. I suppose you're getting the basics... Well, that's good, because Altibut HyperText is facing a new challenge. Red Spikes. <br> Now, you will have to <b>create platforms</b> to avoid being... killed. You will probably need a <b>stair in the middle</b>, too. Remember you can use divs not only to create platforms, but also to leave spaces between platforms. <br> Good luck!", map: '<div id="hero"></div><div class="spikes" style="width: 350px; height: 10px;top:90px; left: 450px;"></div><div class="spikes" style="width: 600px; height: 10px;top:440px; left: 300px;"></div><div class="platform" style="width: 450px; height: 50px;top:50px; left: 0px;"></div><div class="platform" style="width: 200px; height:50px;top:50px;left:800px;"></div><div class="platform" style="width: 200px; height:300px;top:150px;left:100px;"></div><div class="platform" style="width: 500px; height:50px;top:400px;left:900px;"></div><div class="platform" style="width: 400px; height:500px;top:500px;left: 0px;"></div><div class="platform" style="width: 500px; height:500px;top:500px;left:1000px;"></div><div id="yourZone" style="width: 700px; height: 500px;top: 48px;left: 298px;"></div><div class="win" style="width: 200px; height: 30px; top: 460px; left: 1050px;"></div>', start_check:()=>{return true}}
+]
+
+function prepareLevel(n, reset){
+	document.getElementById("gameZone").innerHTML = levels[n].map
+
+
+	document.getElementById('html').value = levels[n].html[0]
+	document.getElementById("html").disabled = levels[n].html[1]
+	document.getElementById('css').value = levels[n].css[0]
+	document.getElementById("css").disabled = levels[n].css[1]
+	document.getElementById('js').value = levels[n].js[0]
+	document.getElementById("js").disabled = levels[n].js[1]
+	document.getElementById("mission").innerHTML = levels[n].mission
+	document.getElementById("title").innerText = levels[n].name
+	leveldata = levels[n]
+	if (reset == false) {
+		document.getElementById('html').value = localStorage["Level"+String(n)+"html"] || levels[n].html[0]
+		document.getElementById('css').value = localStorage["Level"+String(n)+"css"] || levels[n].css[0]
+		document.getElementById('js').value = localStorage["Level"+String(n)+"js"] || levels[n].js[0]
+	}
+
+	update_yourArea()
+}
+
+prepareLevel(0, false)
+
+var level = 0
+
+document.getElementById("play_bt").onclick = ()=>{
+	hero = new Hero()
+	if (play != undefined) {
+		cancelAnimationFrame(play)
+	}
+	update_yourArea(true)
+	if (leveldata.start_check()){
+		playLevel()
+		
+		document.getElementById("codeArea").classList.add("codeAreaHidden")
+		document.getElementById("menu_bt").innerText = "Show"		
+	} else {
+		you_died("You didn't respect the mission's instructions", 2000)
+	}
+
+
+	localStorage["Level"+String(level)+"html"] = document.getElementById("html").value
+	localStorage["Level"+String(level)+"js"] = document.getElementById("js").value
+	localStorage["Level"+String(level)+"css"] = document.getElementById("css").value
+}
+
+window.onkeypress = ()=>{update_yourArea(false)}
+
+function update_yourArea(script){
+	if (script != false) {
+		document.getElementById("yourZone").innerHTML = "<style type='text/css'>"+String(document.getElementById("css").value)+"</style><body>"+String(document.getElementById("html").value)+"</body><script>"+String(document.getElementById("js").value)+"<"+"/script>"
+	} else{
+		document.getElementById("yourZone").innerHTML = "<style type='text/css'>"+String(document.getElementById("css").value)+"</style><body>"+String(document.getElementById("html").value)+"</body>"
+	}
+
+	query = document.querySelectorAll("div.platf")
+	for (var i=0; i<query.length;i++){
+		query[i].classList.add("platform")
+	}
+
+}
+
+document.getElementById("stop_bt").onclick = ()=>{
+	cancelAnimationFrame(play)
+}
+
+
+document.getElementById("menu_bt").onclick = ()=>{
+	if (document.getElementById("codeArea").classList.contains("codeAreaHidden")){
+		document.getElementById("codeArea").classList = []
+		document.getElementById("menu_bt").innerText = "Hide"
+		
+	}
+	else {
+		document.getElementById("codeArea").classList.add("codeAreaHidden")
+		document.getElementById("menu_bt").innerText = "Show"
+		document.getElementById("mission_details").open = false
+		document.getElementById("codeInputs").open = false
+	}
+}
+
+fill_level_dropdown()
+
+function fill_level_dropdown(){
+	html = ""
+	for (var y = levels.length -1; y>=0; y--)  {
+		html += "<option value='"+String(y)+"'>Level "+String(y+1)+"- "+levels[y].name+"</option>"
+	}
+	document.getElementById("levels_selector").innerHTML = html
+	document.getElementById("levels_selector").onchange = ()=>{
+		if (play != undefined) {
+			cancelAnimationFrame(play)
+		}
+		level = parseInt(document.getElementById("levels_selector").value)
+		prepareLevel(document.getElementById("levels_selector").value, false)
+	}
+	document.getElementById("levels_selector").value = 0
+}
+
+codeArea = document.getElementById("codeArea")
+lastSize = "240px"
+
+function you_died(message, duration){
+	message = message || "...oops..."
+	duration = duration || 1000
+	document.getElementById("oops_div").style = ""
+	document.getElementById("oops_div").children[0].innerText = message
+	setTimeout(()=>{document.getElementById("oops_div").classList = ["show_oops_div"]}, 10)
+
+	setTimeout(()=>{
+		document.getElementById("oops_div").classList = ["hide_oops_div"]
+		document.getElementById("oops_div").children[0].style = "transform: translateY(-70px);"
+		setTimeout(()=>{
+			document.getElementById("oops_div").style = "display: none;"
+			document.getElementById("oops_div").children[0].style = ""
+		}, 400)
+	}, duration)
+}
+
+
+</script>
+</html>
